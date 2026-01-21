@@ -2,13 +2,15 @@ import sqlite3
 
 
 class Data:
+    "a mini object for data manipulation"
 
     def __init__(self,base):
-        self.database = base if isinstance(base,str) else base.__dict__.get("name")
+        self.database = base if isinstance(base,str) else base.__class__.__dict__.get("name") 
         self.connection = sqlite3.connect(self.database)
+        
 
-    def __repr__(self):
-        return "Data operation tool for given database"
+    def __str__(self):
+        return f"Data operation tool for given database, currently connected to -> {self.database}"
 
     def fetch(self, table, column, match):
         with self.connection as conn:
