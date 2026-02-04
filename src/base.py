@@ -63,12 +63,12 @@ class Base:
     
     #list available tables
     def list_tables(self):
-        print(f"{len(self.table_index)} tables ready to build in database -> {self.name}")
 
-        index = self.table_index.index
+        tables = enumerate(self.table_index)
 
-        for table in self.table_index:
-            print(f"index no.{index(table)} : {table}")
+        result = {table[0] : table[1] for table in tables}
+
+        return result
 
     
     def delete_table(self, table_name):
