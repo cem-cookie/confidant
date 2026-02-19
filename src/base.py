@@ -1,13 +1,15 @@
 import sqlite3
 from pathlib import Path
-from config import DEFAULT_DATABASE_NAME, COLUMN_TYPES,DATABASE_PATH
+import json
+import datetime as dt
+import config
 
 class Base:
     '''Database class for managing SQLite database connections and operations.'''
 
     #set database configurations
-    name = DEFAULT_DATABASE_NAME
-    column_types = COLUMN_TYPES
+    name = config.DEFAULT_DATABASE_NAME
+    column_types = config.COLUMN_TYPES
     table_index = []
     registered_tables = {}
 
@@ -16,7 +18,7 @@ class Base:
 
         if table_name in self.table_index:
             return """table name already exists, please try another name or change the name of existing one. 
-            (Hint:  this application is case naive, meaning that you can register a table with upper and lower case as same name.)""" 
+            (Hint:  this application is case-naive, meaning that you can register a table with upper and lower case as same name.)""" 
         
         #register table name to index
         self.table_index.append(table_name)
@@ -28,7 +30,6 @@ class Base:
 
         return f"table [{str(table_name)}] has been registered"
     
-
     #register column types with qulities for table
     def register_column(self, table_name, column_name,column_type, not_null= True, primary_key=False, autoinc = False, unique = False):
 
@@ -59,7 +60,6 @@ class Base:
         
         #add column specs to table columns section
         return self.registered_tables[table_name].append(column_register)
-
     
     #list available tables
     def list_tables(self):
@@ -70,7 +70,6 @@ class Base:
 
         return result
 
-    
     def delete_table(self, table_name):
 
         if table_name not in self.table_index:
@@ -89,9 +88,9 @@ class Base:
         if '.db' not in self.name:
             self.name += '.db'
         
-        path = Path(DATABASE_PATH + self.name).resolve()
+        db_path = Path(DATABASE_PATH + self.name).resolve()
         
-        with sqlite3.connect(path) as con:
+        with sqlite3.connect(db_path) as con:
             try:        
                 for table,columns in self.registered_tables.items():
                     sql_column = [f"{col['col_name']} {col['col_type']} {" ".join(col['options'])}" for col in columns]  
@@ -103,6 +102,29 @@ class Base:
             
             finally:
                 con.close()
+
+                #parse log data and update log.json file
+                json_path = Path(config.LOG_PATH)
+                if not json_path.exists():
+                    return f"Log file not found at {config.LOG_PATH}. Please ensure the file exists and try again."
+
+                #some json magic
+                with open(json_path, 'r') as f:
+                    log_data = json.load(f)
+                    with open(json_path, 'w') as f:
+                        log_data.append({
+                            'class_name' : self.__class__.__name__,
+                            'database' : self.name,
+                            'table_index' : self.table_index,
+                            'registered_tables' : self.registered_tables,
+                            'timestamp' : dt.datetime.timestamp(dt.datetime.now()),
+                            'created_at' : dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        } )
+                        json.dump(log_data, f, indent=4)
+                
+                return f"database [{self.name}] has been built successfully."
+
+
 
 
             

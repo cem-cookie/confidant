@@ -8,6 +8,9 @@ from config import WARNING,ASCENDING,ORDER_BY_INDEX
 db= Base()
 data = Data(db)
 
+#app will only work with setup.py
+#setup.py will construct the class based on the latest entry in log.json and the config file, and then import the class to app.py for use. 
+#This way, we can ensure that the app is always working with the latest data and configurations without having to change the code in app.py.
 
 
 print("=== Personal Confidant v1 ===")
@@ -127,4 +130,13 @@ match prompt_1:
 
                 if consent == "y":
                     data.list_all(working_table)
-                
+                else:
+                    print("operation cancelled, going back to main menu.")
+
+    case "3":
+        pass
+        #will be v2 feature, to create new source with some basic settings. For now, you can create a source by registering a table and adding columns to it.
+
+    case "4":
+        print("goodbye !")
+        exit()

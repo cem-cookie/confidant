@@ -1,11 +1,13 @@
 '''General configuration settings for the database application.
 Settings can be modified here to suit different environments or requirements.'''
 
+#Class names
+CLASS = ["Base", "Data"]
+
 # Database
 DEFAULT_DATABASE_NAME = 'standart.db'
 DATABASE_PATH = "./data/"
 LOG_PATH = "./data/log.json"
-
 
 # Column
 COLUMN_TYPES = ["TEXT", "REAL", "INTEGER", "NULL", "DATE"]
@@ -22,4 +24,5 @@ FAIL = '\033[91m'
 ENDC = '\033[0m'
 BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
+
 
