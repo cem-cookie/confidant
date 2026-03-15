@@ -1,11 +1,10 @@
 import json
-#get config information from config.py
-import config
-from src.base import Base
-from src.data import Data
 from pathlib import Path
 
-
+import config
+#get config information and the base and data classes for setup
+from src.base import Base
+from src.data import Data
 
 #get lates data from json
 def process_json():
@@ -17,6 +16,9 @@ def process_json():
     
     with open(json_path, 'r') as f:
         data = json.load(f)
+
+    #sort the data based on timestamp to ensure that the latest entry is at the end of the list.
+    data.sort(key=lambda x: x.get('timestamp', 0))
     return data
 
 
@@ -24,7 +26,10 @@ def construct_class(cls, **settings):
     "factory function to create instances of classes based on the class name"
     if cls not in config.CLASS:
         raise ValueError(f"Class {cls} not found in factory. Try to add the class to the config file and try again.")
-    
+
+    #yield the class instance based on config.CLASS[cls] and the settings from the json file
+    # turn this function into a generator that yields the class instance based on the settings from the json file and the config file. 
+    # This way, we can ensure that the app is always working with the latest data and configurations without having to change the code in app.py.    
     factory = type(cls, (Base,), settings)
     class_instance = factory()
 
@@ -33,13 +38,11 @@ def construct_class(cls, **settings):
 
 def summon_class():
     "construct the class based on the data from the json file and the config file"
-    #bring json data for setup
+    #bring the latest entry from json data
     data = process_json()
-
-    #get latest entry from json data
     latest_entry = max(data, key= lambda x : x.get('timestamp', 0)) 
 
-    
+
     class_name = latest_entry.get('class_name', 'Base')
 
     latest_class = construct_class(class_name, **latest_entry)
@@ -47,4 +50,21 @@ def summon_class():
     return latest_class
 
 
+def main():
+    """main function to run the setup process and create the class instance for app.py"""
+    latest_class = summon_class()
+
+    print(f"""
+    class {latest_class.__class__.__name__} has been summoned successfully with the following settings:
+    database name : {latest_class.name}
+    database path : {latest_class.path}
+    column types : {latest_class.column_types}
+    table index : {latest_class.table_index}
+    registered tables : {latest_class.registered_tables}
+""")
+    
+    db = latest_class
+    data = Data(db)
+
+    return db, data
 

@@ -1,1 +1,9 @@
-[]
+[{
+"class_name" : "Base",
+"database" : "standard.db",
+"path" : "C:\\Users\\cemtr\\.scripts\\projects\\confidant\\data\\standard.db",
+"table_index" : ["people", "books"],
+"registered_tables" : {"people": {"columns": ["id", "name", "age"], "types": ["INTEGER", "TEXT", "INTEGER"]}, "books": {"columns": ["id", "title", "author"], "types": ["INTEGER", "TEXT", "TEXT"]}},
+"timestamp" : 1710000000.0,
+"created_at" : "2023-03-01 12:00:00"
+} ]

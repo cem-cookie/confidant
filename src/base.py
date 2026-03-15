@@ -9,6 +9,7 @@ class Base:
 
     #set database configurations
     name = config.DEFAULT_DATABASE_NAME
+    path = config.DATABASE_PATH
     column_types = config.COLUMN_TYPES
     table_index = []
     registered_tables = {}
@@ -88,7 +89,7 @@ class Base:
         if '.db' not in self.name:
             self.name += '.db'
         
-        db_path = Path(DATABASE_PATH + self.name).resolve()
+        db_path = Path(config.DATABASE_PATH + self.name).resolve()
         
         with sqlite3.connect(db_path) as con:
             try:        
@@ -113,12 +114,13 @@ class Base:
                     log_data = json.load(f)
                     with open(json_path, 'w') as f:
                         log_data.append({
-                            'class_name' : self.__class__.__name__,
-                            'database' : self.name,
-                            'table_index' : self.table_index,
-                            'registered_tables' : self.registered_tables,
-                            'timestamp' : dt.datetime.timestamp(dt.datetime.now()),
-                            'created_at' : dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "class_name" : self.__class__.__name__,
+                            "database" : self.name,
+                            "path" : self.path,
+                            "table_index" : self.table_index,
+                            "registered_tables" : self.registered_tables,
+                            "timestamp" : dt.datetime.timestamp(dt.datetime.now()),
+                            "created_at" : dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         } )
                         json.dump(log_data, f, indent=4)
                 

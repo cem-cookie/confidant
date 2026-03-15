@@ -5,7 +5,7 @@ class Data:
     "a mini object for data manipulation"
 
     def __init__(self,base):
-        self.database = base if isinstance(base,str) else base.__class__.__dict__.get("name") 
+        self.database = base if isinstance(base,str) else base.__class__.__dict__.get("path") 
         self.connection = sqlite3.connect(self.database) if ".db" in self.database else sqlite3.connect(f"{self.database}.db")
         
 
@@ -23,7 +23,7 @@ class Data:
     def insert(self, table, column, value):
         with self.connection as conn:
             cursor = conn.cursor()
-            cursor.execute(f"INSERT INTO {table}({column}) VALUES({value}))")
+            cursor.execute(f"INSERT INTO {table}({column}) VALUES({value})")
             conn.close()
 
     def insert_multiple(self, table, *values):
@@ -44,9 +44,11 @@ class Data:
         order = column[int(order_by)]
         ascend = "ASC" if ascending else "DESC"
         
+        #sql injection defences will be added in v2. 
+
         with self.connection as conn:
             cursor= conn.cursor()
-            cursor.execute(f"SELECT {','.join(column)} FROM {table} ORDER BY {order_by} {ascending}").fetchall()
+            cursor.execute(f"SELECT {','.join(column)} FROM {table} ORDER BY {order} {ascend}").fetchall()
             conn.close()
 
     def list_all(self, table):

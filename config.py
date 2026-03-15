@@ -6,7 +6,7 @@ CLASS = ["Base", "Data"]
 
 # Database
 DEFAULT_DATABASE_NAME = 'standart.db'
-DATABASE_PATH = "./data/"
+DATABASE_PATH = "./data/" 
 LOG_PATH = "./data/log.json"
 
 # Column
