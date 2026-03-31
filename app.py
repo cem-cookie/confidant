@@ -1,4 +1,4 @@
-from setup import main, construct_class
+from setup import main, summon_class
 import config
 import datetime as dt
 from time import sleep
