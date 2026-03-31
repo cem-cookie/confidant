@@ -1,12 +1,31 @@
 import sqlite3
+import os
 
 
 class Data:
-    "a mini object for data manipulation"
+    """a mini object for data manipulation"""
 
-    def __init__(self,base):
-        self.database = base if isinstance(base,str) else base.__class__.__dict__.get("path") 
-        self.connection = sqlite3.connect(self.database) if ".db" in self.database else sqlite3.connect(f"{self.database}.db")
+    def __init__(self, base):
+        """Initialize a Data helper for the given 'Base' instance."""
+        if isinstance(base, str):
+            # ``base`` is already a full path (may already include .db)
+            db_path = base
+        else:
+            # Retrieve class attributes safely; fallback to config defaults if missing
+            path = getattr(base.__class__, "path", "")
+            name = getattr(base.__class__, "name", "")
+            db_path = f"{path}{name}"
+
+        # Ensure the path ends with .db
+        if not db_path.lower().endswith('.db'):
+            db_path = f"{db_path}.db"
+
+        # Expand user (~) and create parent directory if needed
+        db_path = os.path.expanduser(db_path)
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+
+        self.database = db_path
+        self.connection = sqlite3.connect(self.database)
         
 
     def __str__(self):
@@ -39,7 +58,7 @@ class Data:
             cursor.execute(f"DELETE FROM {table} WHERE {column}={data}")
             conn.close()
 
-    def list(self, table, *column, order_by="0", ascending=True):
+    def listing(self, table, *column, order_by="0", ascending=True):
         #fetch specific columns
         order = column[int(order_by)]
         ascend = "ASC" if ascending else "DESC"

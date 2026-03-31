@@ -1,10 +1,13 @@
-from setup import main
-from config import FAIL,WARNING,ASCENDING,ORDER_BY_INDEX, ENDC
+from setup import main, construct_class
+import config
+import datetime as dt
 from time import sleep
+from pathlib import Path
+import json
 
 print("=== Personal Confidant v1 ===")
 name = input("your name : ")
-print(f"Welcome {name}...")
+print(f"Welcome {name.capitalize()}...")
 sleep(1)
 print("trying to find the latest setting...")
 sleep(1)
@@ -14,15 +17,12 @@ sleep(1)
 try:
     db , data = main()
 except ValueError:
-    ask_setting = input(FAIL + "fatal : well..apparently there is no setting to work with. Would you like to create a new source ? (y/n) : " + ENDC)
-    if ask_setting.lower() == 'y':
-        print("creating a new source...")
-        sleep(1)
-        #HANDLE THE CREATION OF NEW SOURCE !!!
-    else:
-        print("leaving the application...")
-        sleep(0.5)
-        exit()
+    ask_setting = print(config.FAIL + "fatal : well..apparently there is no source to work with. Make sure you have a valid database file." + config.ENDC)
+    #perhaps we can help user with some options here to create a new source or something, but for now let's just exit the application if there is no valid source to work with.
+    sleep(0.5)
+    print("leaving the application...")
+    sleep(0.5)
+    exit()
 
 
 #start the main loop
@@ -62,7 +62,7 @@ You :"""
                 
                 table_list = db.list_tables()
                 
-                for table_num, table_name in table_list:
+                for table_num, table_name in table_list.items():
                     print(f"{table_num} : {table_name}")
                     sleep(0.5)
 
@@ -154,7 +154,7 @@ You :"""
                                     sleep(0.5)
 
                         case "3":
-                            print(WARNING, "THIS IS A DANGER ZONE, BE CAREFUL. YOU CAN ERASE YOUR DATA(S) PERMANENTLY IF YOU MAKE A MISTAKE.", ENDC )
+                            print(config.WARNING, "THIS IS A DANGER ZONE, BE CAREFUL. YOU CAN ERASE YOUR DATA(S) PERMANENTLY IF YOU MAKE A MISTAKE.", config.ENDC )
 
                             for column in reference_columns:
                                 print(column)
@@ -174,7 +174,7 @@ You :"""
                             #prepare columns --> some validation techniques may be added in v2
                             columns = tuple([column.strip() for column in ask_column.split(' ')])
 
-                            data.list(working_table, *columns, order_by=ORDER_BY_INDEX, ascending=ASCENDING)
+                            data.listing(working_table, *columns, order_by=config.ORDER_BY_INDEX, ascending=config.ASCENDING)
                             sleep(0.5)
                         
                         case "5":

@@ -3,10 +3,11 @@ Settings can be modified here to suit different environments or requirements.'''
 
 #Class names
 CLASS = ["Base", "Data"]
+DEFAULT_CLASS_NAME = "Base"
 
 # Database
 DEFAULT_DATABASE_NAME = 'standart.db'
-DATABASE_PATH = "./data/" 
+DATABASE_PATH = "~/.scripts/projects/confidant/data/" 
 LOG_PATH = "./data/log.json"
 
 # Column

@@ -1,4 +1,3 @@
-import sqlite3
 from pathlib import Path
 import json
 import datetime as dt
@@ -84,47 +83,7 @@ class Base:
         except Exception as e:
             return f"an error occurred while deleting the table: {e}"
     
-    def build(self):
-        
-        if '.db' not in self.name:
-            self.name += '.db'
-        
-        db_path = Path(config.DATABASE_PATH + self.name).resolve()
-        
-        with sqlite3.connect(db_path) as con:
-            try:        
-                for table,columns in self.registered_tables.items():
-                    sql_column = [f"{col['col_name']} {col['col_type']} {" ".join(col['options'])}" for col in columns]  
-                    con.execute(f"CREATE TABLE {table} ({', '.join(sql_column)})")
-            
-            #context manager will handle commit/rollback automatically
-            except sqlite3.Error as e:
-                print(f"An error occurred: {e}") 
-            
-            finally:
-                con.close()
-
-                #parse log data and update log.json file
-                json_path = Path(config.LOG_PATH)
-                if not json_path.exists():
-                    return f"Log file not found at {config.LOG_PATH}. Please ensure the file exists and try again."
-
-                #some json magic
-                with open(json_path, 'r') as f:
-                    log_data = json.load(f)
-                    with open(json_path, 'w') as f:
-                        log_data.append({
-                            "class_name" : self.__class__.__name__,
-                            "database" : self.name,
-                            "path" : self.path,
-                            "table_index" : self.table_index,
-                            "registered_tables" : self.registered_tables,
-                            "timestamp" : dt.datetime.timestamp(dt.datetime.now()),
-                            "created_at" : dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        } )
-                        json.dump(log_data, f, indent=4)
-                
-                return f"database [{self.name}] has been built successfully."
+    
 
 
 
