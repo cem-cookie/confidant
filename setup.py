@@ -1,7 +1,7 @@
 import sqlite3
 import json
 from pathlib import Path
-import datetime as dt
+from datetime import datetime as dt
 from time import sleep
 import config
 
@@ -29,8 +29,8 @@ def process_json():
             "path" : config.DATABASE_PATH,
             "table_index" : [],
             "registered_tables" : {},
-            "timestamp" : dt.datetime.timestamp(dt.datetime.now()),
-            "created_at" : dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "timestamp" : dt.now().timestamp(),
+            "created_at" : dt.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
         with open(json_path, 'w') as f:
             json.dump(data, f, indent=6)
@@ -49,29 +49,29 @@ def summon_class():
     return factory()
 
 def build(database: Base):
-        
+
         if '.db' not in database.name:
             database.name += '.db'
         
         db_path = Path(config.DATABASE_PATH + database.name).expanduser()
         
+
         with sqlite3.connect(db_path) as con:
+            #an efficient check/control logic may be added with v2
             try:        
                 for table,columns in database.registered_tables.items():
-                    sql_column = [f"{col['col_name']} {col['col_type']} { ' '.join(col['options']) }" for col in columns]  
-                    con.execute(f"CREATE TABLE {table} ({', '.join(sql_column)})")
-            
-            #context manager will handle commit/rollback automatically
-            except sqlite3.Error as e:
-                print(f"An error occurred: {e}") 
-            
-            finally:
-                pass
+                     sql_column = [f"{col['col_name']} {col['col_type']} { ' '.join(col['options']) }" for col in columns]  
+                     con.execute(f"CREATE TABLE IF NOT EXISTS {table} ({', '.join(sql_column)})")
+
+                #context manager will handle commit/rollback automatically
+                con.close()
+           
+                        except sqlite3.Error as e:
+                print(f"An error occurred: {e}")  
         
-        if db_path.exists():
-            return f"database [{database.name}] has been built successfully."
+        return
 
-
+       
 
 def main():
     """main function to run the setup process and create the class instance for app.py"""
@@ -80,4 +80,6 @@ def main():
     data = Data(db)
 
     return db, data
+
+
 

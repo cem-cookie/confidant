@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import datetime as dt
 import config
+from datetime import datetime as dt
 
 class Base:
     '''Database class for managing SQLite database connections and operations.'''
@@ -12,6 +13,7 @@ class Base:
     column_types = config.COLUMN_TYPES
     table_index = []
     registered_tables = {}
+    connection_alive = False #cannot find a logical way to use this, may delete later
 
     #table registration
     def register_table(self, table_name):
@@ -31,7 +33,7 @@ class Base:
         return f"table [{str(table_name)}] has been registered"
     
     #register column types with qulities for table
-    def register_column(self, table_name, column_name,column_type, not_null= True, primary_key=False, autoinc = False, unique = False):
+    def register_column(self, table_name, column_name,column_type, not_null= False, primary_key=False, autoinc = False, unique = False):
 
         if table_name not in self.table_index:
             return "table is not found in index, please register the table first before adding columns"
@@ -83,9 +85,26 @@ class Base:
         except Exception as e:
             return f"an error occurred while deleting the table: {e}"
     
-    
-
-
-
-
-            
+ 
+    #general function to wrap up all changes from Base object and do sql magic accordingly
+    def wrap_up(self):
+            #get all changes and migrate it into sql, close coneection finally etc etc
+            latest = {
+                "class_name": self.__class__.__name__,
+                "name": self.name,
+                "path": self.path,
+                "table_index": self.table_index,
+                "registered_tables": self.registered_tables,
+                "timestamp": dt.now().timestamp(),
+                "created_at": dt.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+        
+            #do json registration
+            json_path = Path(config.LOG_PATH)
+            with open(json_path, "w") as jw:
+                with open(json_path, "r") as jr:
+                   data = json.load(jr)
+                
+                data.append(latest)
+                json.dump(data, jw, indent=6)
+                

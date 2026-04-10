@@ -12,8 +12,8 @@ class Data:
             db_path = base
         else:
             # Retrieve class attributes safely; fallback to config defaults if missing
-            path = getattr(base.__class__, "path", "")
-            name = getattr(base.__class__, "name", "")
+            path = getattr(base, "path", "")
+            name = getattr(base, "name", "")
             db_path = f"{path}{name}"
 
         # Ensure the path ends with .db
@@ -37,7 +37,7 @@ class Data:
             result = cursor.execute(f"SELECT * FROM {table} WHERE {column} = {match}").fetchall()
             conn.close()
 
-            return result
+        return result
 
     def insert(self, table, column, value):
         with self.connection as conn:
@@ -55,6 +55,7 @@ class Data:
     def erase(self,table,column,data):
         with self.connection as conn:
             cursor= conn.cursor()
+            #this will delete entire row, consider more elegant solution for v2
             cursor.execute(f"DELETE FROM {table} WHERE {column}={data}")
             conn.close()
 
@@ -76,3 +77,4 @@ class Data:
             cursor = conn.cursor()
             cursor.execute(f"SELECT * FROM {table}").fetchall()
             conn.close()
+

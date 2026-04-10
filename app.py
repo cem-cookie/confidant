@@ -1,9 +1,8 @@
 from setup import main, summon_class
 import config
-import datetime as dt
 from time import sleep
 from pathlib import Path
-import json
+
 
 print("=== Personal Confidant v1 ===")
 name = input("your name : ")
@@ -33,12 +32,12 @@ while True:
 _________________________________
 please select the options below:
 
-1. list available sources
-2. work with a source
-3. create new source
+1. list available tables
+2. work with a table
+3. create new table
 4. exit 
 
-You :"""
+You : """
         
         )
 
@@ -48,22 +47,26 @@ You :"""
             if len(db.table_index) == 0:
                 print("\nThere is no available table. Building one would be a good idea.")
                 sleep(1)
+
                 ask_quit = input("Would you like to leave? (y/n) : ")
                 if ask_quit.lower() == 'y':
                     print("leaving the applciation")
                     sleep(0.5)
                     break
-                else:
+                elif ask_quit.lower() == 'n':
                     print("returning to main menu...")
-                    sleep(1)
+                    sleep(0.5)
+                else:
+                    print("Invalid input. Please enter 'y' or 'n'.")
+                    sleep(2)
             
             elif len(db.table_index) > 0:
-                print(f"{len(db.table_index)} tables ready to build in database -> {db.name}")
+                print(f"{len(db.table_index)} tables ready to build in database -> {db.name}\n","-"*10)
                 
                 table_list = db.list_tables()
                 
                 for table_num, table_name in table_list.items():
-                    print(f"{table_num} : {table_name}")
+                    print(f"{table_num+1} --> {table_name}")
                     sleep(0.5)
 
             else:
@@ -122,7 +125,9 @@ You :"""
                         case "2":
                             ask_type = input("""what would you like to do ?
                                             1. insert a value
-                                            2. insert multiple values""")
+                                            2. insert multiple values
+                                            
+                                            You : """)
                             
                             match ask_type:
                                 case "1":
@@ -139,8 +144,8 @@ You :"""
                                     sleep(0.5)
 
                                 case "2":
-                                    ask_values = input("please insert the values in x y z form : ")
-                                    ask_values = tuple([value.strip() for value in ask_values.split(' ')])
+                                    ask_values = input("please insert the values in x,y,z form : ")
+                                    ask_values = tuple([value.strip() for value in ask_values.split(',')])
                                     
                                     if len(ask_values) != len(reference_columns):
                                         print("number of values do not match with the number of columns, please try again.")
@@ -170,9 +175,9 @@ You :"""
                             for column in reference_columns:
                                 print(column)
 
-                            ask_column = input("which column(s) would you like to see (in x y z form) ? : ")
+                            ask_column = input("which column(s) would you like to see (in x,y,z form) ? : ")
                             #prepare columns --> some validation techniques may be added in v2
-                            columns = tuple([column.strip() for column in ask_column.split(' ')])
+                            columns = tuple([column.strip() for column in ask_column.split(',')])
 
                             data.listing(working_table, *columns, order_by=config.ORDER_BY_INDEX, ascending=config.ASCENDING)
                             sleep(0.5)
@@ -193,12 +198,67 @@ You :"""
                             break
                             
         case "3":
-            pass
-            #will be v2 feature, to create new source with some basic settings. For now, you can create a source by registering a table and adding columns to it.
+            ask_table_name = input("what is the name of the new table ? : ")
+            if ask_table_name in db.table_index:
+                print("a table with the same name already exists, try another name.")
+                sleep(0.5)
+                break
+            db.register_table(ask_table_name) #register the table
 
+            #column registering starts here
+            ask_column_num = int(input("how many columns would you like to have ? : "))
+           
+            for i in range(ask_column_num):
+                #add attempt mechanism with inner while loop
+                ask_column_name = input(f"what is the name of column {i+1} ? : ")
+                ask_column_type = input(f"what is the type of column {i+1} ? ")
+                
+                if ask_column_type.strip().upper() not in config.COLUMN_TYPES:
+                    print(f"invalid column type, valid types are {', '.join(config.COLUMN_TYPES)}.")
+                    sleep(0.5)
+                    continue
+                
+                ask_column_options = input(f"any options for column {i+1} ? (in x,y,z form) : ").upper().split(",")
+                #small checkbox for column options
+                options_checkbox = {o:False for o in config.VALID_COLUMN_OPTIONS}
+                #validity check
+                for option in ask_column_options:
+                    option = option.strip()
+                    if option not in config.VALID_COLUMN_OPTIONS:
+                        print(f"invalid column option '{option}', valid options are {', '.join(config.VALID_COLUMN_OPTIONS)}.")
+                        rectify = input("would you like to rectify the option ? (y/n) : ")
+                        if rectify.lower() == 'y':
+                            new_option = input("please enter the correct option : ")
+                            if new_option.strip().upper() in config.VALID_COLUMN_OPTIONS:
+                                ask_column_options[ask_column_options.index(option)] = new_option.strip().upper()
+                                print("option rectified.")
+                                sleep(0.5)
+                        elif rectify.lower() == 'n':
+                            print("skipping the option...")
+                            ask_column_options.remove(option)
+                            sleep(0.5)
+                        else:
+                            print("invalid column option, skipping the option...")
+                            ask_column_options.remove(option)
+                            sleep(0.5)
+                    option_checkbox[option] = True
+                       
+                db.register_column(ask_table_name, ask_column_name, ask_column_type,
+                                   not_null = option_checkbox["NOT NULL"],
+                                   primary_key = option_checkbox["PRIMARY KEY"],
+                                   autoinc = option_checkbox["AUTOINCREMENT"],
+                                   unique = option_checkbox["UNIQUE"])
+                #rebuild the database since its underlying structure altered
+                #an exception handler here would be a wise move
+                setup.build(db)
+
+            print(f"table {ask_table_name} created successfully with given columns.")
+            
         case "4":
+            print("checking if everything is saved correctly..")
+            db.wrapup() 
             print("leaving now .. ")
             sleep(1)
-            print("goodbye !")
+            print(f"goodbye {name.capitalize()} !")
             sleep(0.5)
             exit()
