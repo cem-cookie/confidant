@@ -30,34 +30,39 @@ class Data:
 
     def __str__(self):
         return f"Data operation tool for given database, currently connected to -> {self.database}"
-
+    
+    ######  BEWARE STARTING FROM THIS POINT!  ########
+    #IMPORTANT : USE PARAMETIRED VALUES TO PREVENT SQL INJECTION AND SINGLE/DOUBLE QUOTE CHAOS
+    
     def fetch(self, table, column, match):
         with self.connection as conn:
             cursor= conn.cursor()
-            result = cursor.execute(f"SELECT * FROM {table} WHERE {column} = {match}").fetchall()
-            conn.close()
+            result = cursor.execute(f"SELECT * FROM {table} WHERE {column}=?", (match,)).fetchall()
+            
 
         return result
 
     def insert(self, table, column, value):
         with self.connection as conn:
             cursor = conn.cursor()
-            cursor.execute(f"INSERT INTO {table}({column}) VALUES({value})")
-            conn.close()
+            cursor.execute(f"INSERT INTO {table}({column}) VALUES(?)", (value,))
+            
 
     def insert_multiple(self, table, *values):
+        number_of_values = len(values)
+        number_of_parameters = ["?"] * number_of_values
         with self.connection as conn:
             cursor= conn.cursor()
-            cursor.execute(f"INERT INTO {table} VALUES{values}")
-            conn.close()
+            cursor.execute(f"INSERT INTO {table} VALUES ({','.join(number_of_parameters)})", values) #no ned to put into tuple since *v returns tuple
+            
 
 
     def erase(self,table,column,data):
         with self.connection as conn:
             cursor= conn.cursor()
             #this will delete entire row, consider more elegant solution for v2
-            cursor.execute(f"DELETE FROM {table} WHERE {column}={data}")
-            conn.close()
+            cursor.execute(f"DELETE FROM {table} WHERE {column}=?",(data,))
+            
 
     def listing(self, table, *column, order_by="0", ascending=True):
         #fetch specific columns
@@ -68,13 +73,15 @@ class Data:
 
         with self.connection as conn:
             cursor= conn.cursor()
-            cursor.execute(f"SELECT {','.join(column)} FROM {table} ORDER BY {order} {ascend}").fetchall()
-            conn.close()
+            result = cursor.execute(f"SELECT {','.join(column)} FROM {table} ORDER BY {order} {ascend}").fetchall()
+        
+        return result
 
     def list_all(self, table):
         #fetch everything
         with self.connection as conn:
             cursor = conn.cursor()
-            cursor.execute(f"SELECT * FROM {table}").fetchall()
-            conn.close()
+            result = cursor.execute(f"SELECT * FROM {table}").fetchall()
+            
+        return result
 

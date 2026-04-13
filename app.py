@@ -1,8 +1,9 @@
-from setup import main, summon_class
+import setup
 import config
 from time import sleep
 from pathlib import Path
 
+#in any instance of exception or exit, wrapup and buildup function should be triggered to prevent data loss.
 
 print("=== Personal Confidant v1 ===")
 name = input("your name : ")
@@ -14,9 +15,9 @@ sleep(1)
 
 #start the setup process and get the latest class instance based on the json data and the config file
 try:
-    db , data = main()
+    db , data = setup.start()
 except ValueError:
-    ask_setting = print(config.FAIL + "fatal : well..apparently there is no source to work with. Make sure you have a valid database file." + config.ENDC)
+    ask_setting = print(config.FAIL + "FATAL : well..apparently there is no source to work with. Make sure you have a valid database file." + config.ENDC)
     #perhaps we can help user with some options here to create a new source or something, but for now let's just exit the application if there is no valid source to work with.
     sleep(0.5)
     print("leaving the application...")
@@ -75,7 +76,7 @@ You : """
         case "2":
             #first loop to select the source, second loop to work with the source
             while True:
-                prompt_2 = input("""which source would like to work with ? : """)
+                prompt_2 = input("""which table would like to work with ? : """)
                 print(f"checking for {prompt_2} in database...")
                 sleep(1)
 
@@ -118,8 +119,8 @@ You : """
                             print("here is the result(s):")
                             for item in results:
                                 structured_result = zip(reference_columns, item)
-                                for data in structured_result:
-                                    print(f"{data[0]} : {data[1]}")
+                                for row in structured_result:
+                                    print(f"{row[0]} : {row[1]}")
                                     sleep(0.5)
                         
                         case "2":
@@ -176,10 +177,12 @@ You : """
                                 print(column)
 
                             ask_column = input("which column(s) would you like to see (in x,y,z form) ? : ")
+
                             #prepare columns --> some validation techniques may be added in v2
                             columns = tuple([column.strip() for column in ask_column.split(',')])
 
-                            data.listing(working_table, *columns, order_by=config.ORDER_BY_INDEX, ascending=config.ASCENDING)
+                            for row in data.listing(working_table, *columns, order_by=config.ORDER_BY_INDEX, ascending=config.ASCENDING):
+                                print(row)
                             sleep(0.5)
                         
                         case "5":
@@ -187,7 +190,8 @@ You : """
 
                             if consent == "y":
                                 #make this area pretty in v2, for now it just dumps everything in the terminal
-                                data.list_all(working_table)
+                                for row in data.list_all(working_table):
+                                    print(row)
                             else:
                                 print("operation cancelled, going back to main menu.")
                                 sleep(0.5)
@@ -211,13 +215,37 @@ You : """
             for i in range(ask_column_num):
                 #add attempt mechanism with inner while loop
                 ask_column_name = input(f"what is the name of column {i+1} ? : ")
-                ask_column_type = input(f"what is the type of column {i+1} ? ")
+                ask_column_type = input(f"what is the type of column {i+1} ? ").strip().upper()
                 
-                if ask_column_type.strip().upper() not in config.COLUMN_TYPES:
+                if ask_column_type not in config.COLUMN_TYPES:
                     print(f"invalid column type, valid types are {', '.join(config.COLUMN_TYPES)}.")
                     sleep(0.5)
-                    continue
-                
+                    #for now give two chances, if a valid type cannot be given just assume that user(me) is a dummy and rollback to sqlite affinity guess
+                    count_column_type_entry = 0
+                    while count_column_type_entry <= 3:
+                        
+                        if count_column_type_entry == 3:
+                            print("you pushed it too far now, try again later...")
+                            sleep(0.5)
+                            break
+                        
+                        ask_column_type_again = input("let's try again: ").strip().upper()
+                        
+                        if ask_column_type_again in config.COLUMN_TYPES:
+                            count_column_type_entry = 0 
+                            ask_column_type = ask_column_type_again
+                            break
+                        
+                        count_column_type_entry += 1
+                    
+                    #check again if the column type is in predefined set or break the process flow if column type is not given properly
+                if ask_column_type not in config.COLUMN_TYPES:
+                    print("sorry but there is somethig wrong with your column definition...")
+                    sleep(0.5)
+                    print("")
+                    print("cannot build the table.. returning to main menu")
+                    sleep(0.5)
+                    break
                 ask_column_options = input(f"any options for column {i+1} ? (in x,y,z form) : ").upper().split(",")
                 #small checkbox for column options
                 options_checkbox = {o:False for o in config.VALID_COLUMN_OPTIONS}
@@ -241,23 +269,29 @@ You : """
                             print("invalid column option, skipping the option...")
                             ask_column_options.remove(option)
                             sleep(0.5)
-                    option_checkbox[option] = True
+                    options_checkbox[option] = True
                        
                 db.register_column(ask_table_name, ask_column_name, ask_column_type,
-                                   not_null = option_checkbox["NOT NULL"],
-                                   primary_key = option_checkbox["PRIMARY KEY"],
-                                   autoinc = option_checkbox["AUTOINCREMENT"],
-                                   unique = option_checkbox["UNIQUE"])
-                #rebuild the database since its underlying structure altered
-                #an exception handler here would be a wise move
-                setup.build(db)
+                                   not_null = options_checkbox["NOT NULL"],
+                                   primary_key = options_checkbox["PRIMARY KEY"],
+                                   autoinc = options_checkbox["AUTOINCREMENT"],
+                                   unique = options_checkbox["UNIQUE"])
+            #rebuild the database since its underlying structure altered
+            #an exception handler here would be a wise move
+            setup.build(db)
 
             print(f"table {ask_table_name} created successfully with given columns.")
             
         case "4":
+            #that would be wise to put something in v2 to handle any exceptions
             print("checking if everything is saved correctly..")
-            db.wrapup() 
-            print("leaving now .. ")
+            #put latest db information into log
+            db.wrap_up() 
+            #build up the latest tables of not built already in database
+            setup.build(db)
+            print("closing the connections and leaving now .. ")
+            #some safe conenction clenaup will be here
+
             sleep(1)
             print(f"goodbye {name.capitalize()} !")
             sleep(0.5)

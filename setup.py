@@ -60,20 +60,22 @@ def build(database: Base):
             #an efficient check/control logic may be added with v2
             try:        
                 for table,columns in database.registered_tables.items():
-                     sql_column = [f"{col['col_name']} {col['col_type']} { ' '.join(col['options']) }" for col in columns]  
-                     con.execute(f"CREATE TABLE IF NOT EXISTS {table} ({', '.join(sql_column)})")
+                     sql_column = [f"{col['col_name']} {col['col_type']} { ' '.join(col['options']) }".strip() for col in columns]  
+                     con.execute(f"CREATE TABLE IF NOT EXISTS {table} ({', '.join(sql_column)})".strip())
 
                 #context manager will handle commit/rollback automatically
-                con.close()
+                #conenction is not closed since it is used by app.py
+                #disconnection will be handled by exit and ctrl+c in app.py
            
-                        except sqlite3.Error as e:
+            except sqlite3.Error as e:
                 print(f"An error occurred: {e}")  
-        
+            
+
         return
 
        
 
-def main():
+def start():
     """main function to run the setup process and create the class instance for app.py"""
     db = summon_class()
     build(db) # ensure that the database is built based on the latest settings from the json file and the config file. This will also update the log.json.

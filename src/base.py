@@ -101,10 +101,10 @@ class Base:
         
             #do json registration
             json_path = Path(config.LOG_PATH)
-            with open(json_path, "w") as jw:
-                with open(json_path, "r") as jr:
-                   data = json.load(jr)
-                
+            with open(json_path, "r") as jr:
+                data = json.load(jr)
                 data.append(latest)
+
+            with open(json_path, "w") as jw:
                 json.dump(data, jw, indent=6)
                 
