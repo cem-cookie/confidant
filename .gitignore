@@ -1,5 +1,10 @@
+#PYTHON RELATED FILES
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-data/*
+
+#DATA FILES
+data/*.json
+data/*.csv
+data/*db
