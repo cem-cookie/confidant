@@ -7,4 +7,4 @@ __pycache__/
 #DATA FILES
 data/*.json
 data/*.csv
-data/*db
+data/*.db
