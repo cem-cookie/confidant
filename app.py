@@ -49,16 +49,16 @@ You : """
                 print("\nThere is no available table. Building one would be a good idea.")
                 sleep(1)
 
-                ask_quit = input("Would you like to leave? (y/n) : ")
-                if ask_quit.lower() == 'y':
+                ask_quit = input("What would you like to do? (build/exit) : ")
+                if ask_quit.lower() == 'build':
                     print("leaving the applciation")
                     sleep(0.5)
                     break
-                elif ask_quit.lower() == 'n':
+                elif ask_quit.lower() == 'exit':
                     print("returning to main menu...")
                     sleep(0.5)
                 else:
-                    print("Invalid input. Please enter 'y' or 'n'.")
+                    print("Invalid input. Please enter 'build' or 'exit'.")
                     sleep(2)
             
             elif len(db.table_index) > 0:
@@ -91,6 +91,8 @@ You : """
                 working_table = prompt_2
                 #bring columns for reference
                 reference_columns = [column.get('col_name','') for column in db.registered_tables[working_table]]
+                
+                
                 #this is the second loop
                 while True:
                     prompt_3 = input("""
@@ -200,7 +202,8 @@ You : """
                             print("returning to main menu...")
                             sleep(0.5)
                             break
-                            
+                #jump to main menu
+                break
         case "3":
             ask_table_name = input("what is the name of the new table ? : ")
             if ask_table_name in db.table_index:
