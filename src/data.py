@@ -84,4 +84,4 @@ class Data:
             result = cursor.execute(f"SELECT * FROM {table}").fetchall()
             
         return result
-
+        

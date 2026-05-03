@@ -51,12 +51,15 @@ You : """
 
                 ask_quit = input("What would you like to do? (build/exit) : ")
                 if ask_quit.lower() == 'build':
-                    print("leaving the applciation")
+                    print("please pick the option 3 in the main menu to create a new table.")
+                    sleep(0.5)
+                    print("redirecting to menu...")
+                    sleep(0.5)
+                    continue
+                elif ask_quit.lower() == 'exit':
+                    print("leaving the application...")
                     sleep(0.5)
                     break
-                elif ask_quit.lower() == 'exit':
-                    print("returning to main menu...")
-                    sleep(0.5)
                 else:
                     print("Invalid input. Please enter 'build' or 'exit'.")
                     sleep(2)
@@ -294,7 +297,15 @@ You : """
             setup.build(db)
             print("closing the connections and leaving now .. ")
             #some safe conenction clenaup will be here
-
+            try:
+                setup.end()
+            
+            except Exception as e:
+                print("OUCH! something went wrong during the cleanup process, here is the error message:")
+                sleep(1)
+                print(e)
+                print("if the application is unresponsive, please exit it manually. Sorry for the inconvenience.")
+            
             sleep(1)
             print(f"goodbye {name.capitalize()} !")
             sleep(0.5)

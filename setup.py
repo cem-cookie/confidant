@@ -73,8 +73,6 @@ def build(database: Base):
 
         return
 
-       
-
 def start():
     """main function to run the setup process and create the class instance for app.py"""
     db = summon_class()
@@ -83,5 +81,12 @@ def start():
 
     return db, data
 
+def end():
+    "function to close the potentially active connections to ensure that there are no open connections left hanging."
+    
+    #check if the connection is open and close it if it is. This is a safety measure to ensure that there are no open connections left hanging.
+    if "conn" in globals():
+        conn.close()
 
-
+    if "data" in globals():
+        data.connection.close()
