@@ -14,7 +14,7 @@ Pure python, no dependency, no nonsense database application.
 Simply clone the repository with:
 
 ```bash
-git clone https://github.com/cem-cookie/confidant 
+git clone https://github.com/cem-cookie/confidant.git
 ```
 
 then:
